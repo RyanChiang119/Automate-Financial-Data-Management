@@ -37,18 +37,18 @@ function importLatestXLSXFromFolder() {
     var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");
 
 
-    // 清除 AW3:BG 到最底部的內容
+    // delete all the data
     var lastRow = targetSheet.getLastRow();
     if (lastRow >= 3) {
       targetSheet.getRange(3, 49, lastRow - 2, 8).clearContent(); // AW = col 49, BG = col 56
     }
 
 
-    // 將資料貼到 AW3 開始
+    // paste the new data
     targetSheet.getRange(3, 49, data.length, data[0].length).setValues(data);
 
 
-    // 刪除轉換後的臨時檔案
+    // "Delete the temporary file after conversion
     DriveApp.getFileById(newFile.id).setTrashed(true);
   } else {
     Logger.log("No .xlsx files found in the folder.");
