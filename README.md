@@ -1,1 +1,1 @@
-# utomate-Financial-Data-Management
+# Automate-Financial-Data-Management
