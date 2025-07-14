@@ -1,0 +1,56 @@
+function importLatestXLSXFromFolder() {
+  var folder = DriveApp.getFolderById('1oZw5jRoej0FqceP3JV4n1hlJ6LfmqIAc'); // Monthly_Expenses folder
+  var files = folder.getFiles();
+  var latestFile = null;
+  var latestDate = 0;
+
+
+  // find the latest .xlsx file
+  while (files.hasNext()) {
+    var file = files.next();
+    if (file.getName().endsWith('.xlsx') && file.getLastUpdated().getTime() > latestDate) {
+      latestDate = file.getLastUpdated().getTime();
+      latestFile = file;
+    }
+  }
+
+
+  if (latestFile) {
+    var blob = latestFile.getBlob();
+    var resource = {
+      title: latestFile.getName(),
+      mimeType: MimeType.GOOGLE_SHEETS
+    };
+
+
+    // excel document to google sheet version
+    var newFile = Drive.Files.insert(resource, blob, {
+      convert: true
+    });
+
+
+    var importedSheet = SpreadsheetApp.openById(newFile.id);
+    var sourceSheet = importedSheet.getSheets()[0];
+    var data = sourceSheet.getDataRange().getValues();
+
+
+    var targetSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Data");
+
+
+    // 清除 AW3:BG 到最底部的內容
+    var lastRow = targetSheet.getLastRow();
+    if (lastRow >= 3) {
+      targetSheet.getRange(3, 49, lastRow - 2, 8).clearContent(); // AW = col 49, BG = col 56
+    }
+
+
+    // 將資料貼到 AW3 開始
+    targetSheet.getRange(3, 49, data.length, data[0].length).setValues(data);
+
+
+    // 刪除轉換後的臨時檔案
+    DriveApp.getFileById(newFile.id).setTrashed(true);
+  } else {
+    Logger.log("No .xlsx files found in the folder.");
+  }
+}
